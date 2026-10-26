@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>VibeCut: corta vídeo describiéndolo</title>
+<meta name="description" content="VibeCut es un editor de vídeo en el navegador. Describe el corte —la duración, los planos, el ritmo, lo que quieres dejar fuera— y construye el montaje y lo reproduce. No se sube nada.">
+<link rel="canonical" href="https://vibecut.commandagi.app/es/">
+<link rel="alternate" hreflang="en" href="https://vibecut.commandagi.app/">
+<link rel="alternate" hreflang="es" href="https://vibecut.commandagi.app/es/">
+<link rel="alternate" hreflang="zh-Hans" href="https://vibecut.commandagi.app/zh/">
+<link rel="alternate" hreflang="x-default" href="https://vibecut.commandagi.app/">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../mark.svg" type="image/svg+xml">
+</head>
+<body data-locale="es" data-root="../">
+<a class="skip" href="#main">Saltar al contenido</a>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="../mark.svg" alt="" width="30" height="30">VibeCut</a>
+    <nav class="site-nav" aria-label="Sitio">
+      <a href="#cut">El editor</a>
+      <a href="#how">Cómo funciona</a>
+      <a href="#what">Qué obtienes</a>
+      <a href="#pricing">Precio</a>
+    </nav>
+    <button class="lang-btn" type="button" aria-haspopup="dialog" aria-label="Idioma">
+      <span class="lang-btn__glyph" aria-hidden="true">A<span>/</span><span lang="zh-Hans">文</span></span>
+    </button>
+  </div>
+</header>
+
+<dialog id="lang" aria-label="Idioma">
+  <h2>Idioma</h2>
+  <ul>
+    <li><a href="/" hreflang="en" lang="en">English</a></li>
+    <li><a href="/es/" hreflang="es" lang="es">Español</a></li>
+    <li><a href="/zh/" hreflang="zh-Hans" lang="zh-Hans">简体中文</a></li>
+  </ul>
+  <button class="btn" type="button" data-close>Cerrar</button>
+</dialog>
+
+<main id="main">
+  <section class="wrap hero">
+    <h1>Describe el corte. Míralo sonar.</h1>
+    <p class="lede">VibeCut es un editor de vídeo al que le hablas. Di cuánto dura, qué planos, con qué ritmo y qué dejar fuera. Construye el corte, te muestra la línea de tiempo y lo reproduce aquí, en tu navegador.</p>
+    <div class="btns">
+      <a class="btn primary" href="#cut">Cortar un vídeo ahora</a>
+      <a class="btn" href="#how">Ver cómo decide</a>
+    </div>
+    <p class="fine">Gratis mientras está en beta. Sin registro y sin subidas: el material de ejemplo y el motor del corte están en esta página.</p>
+    <p id="lang-hint" hidden><a href="/"></a></p>
+  </section>
+
+  <section class="wrap" id="cut">
+    <div class="editor">
+      <form class="editor__form" id="cut-form">
+        <label for="description">Describe el corte</label>
+        <div class="editor__row">
+          <textarea id="description" name="description" rows="3">Un corte de 20 segundos, rápido, planos generales del brazo robot, terminar con el logo, sin café</textarea>
+          <button class="btn primary" type="submit">Cortar</button>
+        </div>
+        <div class="presets" aria-label="Ejemplos">
+          <button type="button" data-preset="Una película tranquila de 30 segundos del estudio al amanecer, lenta, sin ciudad">Una película tranquila</button>
+          <button type="button" data-preset="15 segundos de primeros planos, las manos y el objetivo, cámara lenta">Estudio de primeros planos</button>
+          <button type="button" data-preset="A 20 second cut, fast, wide shots of the robot arm, no coffee">A cut (en)</button>
+          <button type="button" data-preset="25 秒，全景，城市，快剪，不要咖啡">空镜剪辑 (zh)</button>
+        </div>
+      </form>
+
+      <p class="summary" id="summary" role="status"></p>
+
+      <div class="stage">
+        <div>
+          <div class="screen"><canvas id="preview" width="1280" height="720" aria-label="El corte, reproduciéndose"></canvas></div>
+          <div class="transport">
+            <button class="btn" type="button" id="play">Reproducir</button>
+            <span class="clock" id="clock">00:00.0 / 00:20</span>
+            <button class="btn" type="button" id="download">Descargar el corte</button>
+            <button class="btn" type="button" id="export">Generar un vídeo</button>
+          </div>
+        </div>
+        <div class="why">
+          <h3>Por qué este corte</h3>
+          <ul id="why"></ul>
+          <p class="save-note">El corte es un archivo JSON legible: cada plano, dónde empieza y qué segundo de la fuente usa. Genera un vídeo para guardar la imagen; se graba mientras se reproduce, en tiempo real.</p>
+        </div>
+      </div>
+
+      <div class="timeline-shell" aria-label="Línea de tiempo">
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" id="how">
+    <h2>Cómo funciona</h2>
+    <p class="sub">Una descripción se convierte en una lista de decisiones: qué plano, desde qué segundo, cuánto dura y en qué orden. Ves la lista como línea de tiempo y como archivo.</p>
+    <ol class="steps">
+      <li><strong>Descríbelo</strong>Duración en segundos o minutos, tipos de plano, ritmo, los sujetos que quieres y lo que dejar fuera. En inglés, español o chino.</li>
+      <li><strong>Se corta</strong>El motor une tus palabras con el material, conserva la duración que pediste al milisegundo y termina con el cierre, salvo que lo excluyas.</li>
+      <li><strong>Guárdalo</strong>Recorre la línea de tiempo, reproduce el corte, descárgalo como JSON o genéralo como vídeo en el navegador.</li>
+    </ol>
+  </section>
+
+  <section class="wrap section" id="what">
+    <h2>Qué obtienes</h2>
+    <p class="sub">Una primera versión, hecha para usarse hoy. El material de ejemplo es un estudio; tu propio material y un vídeo más largo son la próxima entrega.</p>
+    <div class="cards">
+      <div class="card"><h3>Un corte que se puede leer</h3><p>Cada decisión es un archivo: planos, puntos de entrada y salida, velocidad y las razones de cada elección. Sin cuenta y sin cola de espera.</p></div>
+      <div class="card"><h3>Las razones, en palabras</h3><p>VibeCut dice por qué dejó un plano fuera o por qué termina con el cierre. Un corte es una conversación, no una caja negra.</p></div>
+      <div class="card"><h3>En tu navegador</h3><p>El motor, el material y la reproducción corren en la página. No se sube nada y no se rastrea nada.</p></div>
+      <div class="card"><h3>Tres idiomas</h3><p>Inglés, español y chino simplificado, en el mismo sitio, con el selector A/文.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap section" id="pricing">
+    <h2>Precio</h2>
+    <p class="sub">VibeCut es gratis mientras está en beta. Cobraremos por el estudio cuando el estudio valga la pena.</p>
+    <div class="plans">
+      <div class="plan">
+        <h3>Beta</h3>
+        <p class="price">Gratis</p>
+        <p>El editor de esta página, el material de ejemplo, el archivo del corte y el vídeo generado.</p>
+        <a class="btn primary" href="mailto:hello@vibecut.me">Escríbenos</a>
+      </div>
+      <div class="plan">
+        <h3>Estudio</h3>
+        <p class="price">Más adelante</p>
+        <p>Tu propio material, cortes de una hora y una biblioteca de los planos que más usas. Cuéntanos primero qué necesitas.</p>
+        <a class="btn" href="mailto:hello@vibecut.me?subject=VibeCut%20Studio">Preguntar</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p>VibeCut es una compañía de CommandAGI. <a href="mailto:hello@vibecut.me">hello@vibecut.me</a></p>
+    <p><a href="#cut">El editor</a> · <a href="#how">Cómo funciona</a> · <a href="#pricing">Precio</a></p>
+  </div>
+</footer>
+
+<script type="module" src="../app/lang.mjs"></script>
+<script type="module" src="../app/app.mjs"></script>
+</body>
+</html>

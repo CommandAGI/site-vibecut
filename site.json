@@ -1,0 +1,9 @@
+{
+  "v": 1,
+  "slug": "vibecut",
+  "description": "VibeCut: a browser-native video editor. Describe the cut — its length, shots, pace and what to leave out — and it builds the edit and plays it. A company of CommandAGI.",
+  "status": "active",
+  "productionBranch": "main",
+  "resources": [],
+  "domains": []
+}

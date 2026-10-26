@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="VibeCut">
+  <rect width="64" height="64" rx="14" fill="#101319"/>
+  <path d="M16 16h12v32H16z" fill="#f0b64b"/>
+  <path d="M34 16 52 32 34 48z" fill="#e9edf3"/>
+  <path d="M28 12 40 52h5L33 12z" fill="#0b0d12"/>
+  <path d="M30 12 42 52h2L32 12z" fill="#f0b64b" opacity="0.9"/>
+</svg>
