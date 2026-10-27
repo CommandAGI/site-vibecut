@@ -211,7 +211,7 @@ function page(w) {
 <main id="main">
   <section class="screening" id="cut" aria-labelledby="title">
     <div class="screen-well">
-      <div class="screen" id="screen">
+      <div class="screen" id="screen" data-frame="scope">
         <canvas id="preview" width="1280" height="536" aria-label="${esc(w.h1)}"></canvas>
         <p class="frame-tag" aria-hidden="true"><span id="frame-name">2.39:1</span></p>
       </div>

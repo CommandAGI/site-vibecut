@@ -214,7 +214,7 @@ textarea#description:focus-visible { outline: none; border-bottom-color: var(--m
 .takes button span { font: 500 11px/1 var(--mono); letter-spacing: 0.1em; color: var(--mark); margin-inline-end: 4px; }
 .takes button:hover { color: var(--ivory); text-decoration: underline 2px var(--mark); text-underline-offset: 5px; }
 
-.summary { margin: -10px 0 0; font: 400 13px/1.4 var(--mono); color: var(--ivory-2); text-align: end; }
+.summary { min-height: 1.4em; margin: -10px 0 0; font: 400 13px/1.4 var(--mono); color: var(--ivory-2); text-align: end; }
 .why ul { list-style: none; margin: 0; padding: 0; }
 .why li { padding: 7px 0 7px 22px; position: relative; font-size: 15px; border-top: 1px solid var(--line); }
 .why li::before { content: "✂"; position: absolute; left: 0; top: 7px; color: var(--mark); font-size: 13px; }

@@ -36,3 +36,12 @@ CRF 40 in WebM, H.264 CRF 30 in MP4, a WebP poster at 2.5 s. Raw downloads stay 
 - `node tests/browser.mjs [url]`: the three pages in Chromium: cut, play, reframe to 9:16, the footage loads, render a
   WebM and download it.
 - Screenshots at 1440, 768, 390, 320 and reduced motion: `redesign/.shots/`.
+
+## performance (live, 2026-10-26; Chromium, 150 ms latency, 1.6 Mb/s, CPU ÷4, cache off)
+
+| viewport | LCP | CLS | JS before interaction |
+|---|---|---|---|
+| 390×844 | 2.34 s | 0.073 | 24 KB |
+| 1440×900 | 0.92 s | 0.025 | 24 KB |
+
+The remaining shift is the keys' face swapping in; the screen's frame is in the HTML so the well does not jump.
