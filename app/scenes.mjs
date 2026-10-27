@@ -1,7 +1,6 @@
-// VibeCut's sample footage: eight shots drawn on a canvas, so the demo needs no video file and no network.
-// Each shot is a function of time (`t` in seconds of its source), so a cut seeks anywhere and plays in either
-// direction. A real cut of a person's own footage replaces this file with decoded frames; everything after it
-// (the cut, the timeline, the playback) is unchanged.
+// VibeCut's drawn footage: eight shots drawn on a canvas, each a function of time (`t` in seconds of its source).
+// Seven of the eight also exist as generated clips (media/, app/footage.mjs); the screen shows the clip once it can
+// play and this drawing until then, or when the clip cannot load. The end card is only drawn.
 
 const W = 1280;
 const H = 720;
@@ -203,31 +202,24 @@ export const SCENES = {
         grain(ctx, Math.floor(t * 24), 0.07);
     },
     'end-card'(ctx, t) {
-        sky(ctx, '#0b0d12', '#05060a');
-        const k = ease(Math.min(1, t / 1.2));
+        // The brand's own end title: the wordmark set in the site's display face, a vermilion splice through it.
+        ctx.fillStyle = '#101010';
+        ctx.fillRect(0, 0, W, H);
+        const k = ease(Math.min(1, t / 0.9));
         ctx.save();
-        ctx.translate(W / 2, H / 2 - 20);
+        ctx.translate(W / 2, H / 2);
         ctx.globalAlpha = k;
-        ctx.strokeStyle = '#e6edf3';
-        ctx.lineWidth = 14;
-        ctx.beginPath();
-        ctx.moveTo(-90, -70);
-        ctx.lineTo(-20, -70);
-        ctx.lineTo(-20, 70);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(30, -70);
-        ctx.lineTo(100, 70);
-        ctx.moveTo(100, -70);
-        ctx.lineTo(30, 70);
-        ctx.stroke();
-        ctx.fillStyle = '#e6edf3';
-        ctx.font = '600 76px "Helvetica Neue", Arial, sans-serif';
+        ctx.fillStyle = '#f3f0e8';
         ctx.textAlign = 'center';
-        ctx.fillText('VibeCut', 0, 170);
-        ctx.globalAlpha = k * 0.6;
-        ctx.font = '400 30px "Helvetica Neue", Arial, sans-serif';
-        ctx.fillText('cut by description', 0, 220);
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 168px "Big Shoulders", "Arial Narrow", sans-serif';
+        ctx.fillText('VIBECUT', 0, -10);
+        ctx.fillStyle = '#f0442c';
+        ctx.fillRect(-6 + (1 - k) * 220, -110, 12, 200);
+        ctx.globalAlpha = k * 0.75;
+        ctx.fillStyle = '#f3f0e8';
+        ctx.font = '500 22px "DM Mono", ui-monospace, monospace';
+        ctx.fillText('CUT BY DESCRIPTION', 0, 120);
         ctx.restore();
         grain(ctx, Math.floor(t * 24), 0.03);
     },
@@ -244,9 +236,9 @@ export function drawAt(ctx, shot, sourceSeconds) {
     ctx.restore();
 }
 
-/** Letterbox the 16:9 frame into a canvas of another shape. */
+/** Reframe the 16:9 picture into a canvas of the cut's shape: it fills the frame and the frame crops it. */
 export function fit(ctx, canvas) {
-    const scale = Math.min(canvas.width / W, canvas.height / H);
+    const scale = Math.max(canvas.width / W, canvas.height / H);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);

@@ -19,22 +19,21 @@ if (button && dialog) {
   }
 }
 
-// A visitor whose browser prefers another of this page's languages is offered it, as our public sites do.
+// A visitor whose browser prefers another of the site's languages over this page's is offered it, as our public
+// sites do. Only a language the site has, and not the one on screen.
 const hint = document.getElementById('lang-hint');
 if (hint) {
   const here = document.documentElement.lang;
-  const prefers = navigator.languages ?? [navigator.language];
-  const match = prefers.map(tag => String(tag)).find(tag => {
-    if (tag === here) return false;
-    if (tag.startsWith('zh')) return here === 'zh-Hans';
-    return tag.split('-')[0] === here.split('-')[0];
-  });
-  if (match) {
-    const other = hint.querySelector('a');
-    if (other) {
-      other.href = document.body.dataset.other;
-      other.textContent = document.body.dataset.otherName;
-      hint.hidden = false;
-    }
+  const site = [['en', '/', 'English'], ['es', '/es/', 'Español'], ['zh-Hans', '/zh/', '简体中文']];
+  const base = tag => (String(tag).toLowerCase().startsWith('zh') ? 'zh-Hans' : String(tag).split('-')[0].toLowerCase());
+  const first = (navigator.languages ?? [navigator.language]).map(base).find(b => site.some(([lang]) => lang === b));
+  const offer = first && first !== here ? site.find(([lang]) => lang === first) : null;
+  if (offer) {
+    const link = hint.querySelector('a');
+    link.href = offer[1];
+    link.hreflang = offer[0];
+    link.lang = offer[0];
+    link.textContent = offer[2];
+    hint.hidden = false;
   }
 }

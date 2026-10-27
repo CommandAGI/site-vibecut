@@ -3,33 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
-<title>VibeCut：用一句话剪辑视频</title>
-<meta name="description" content="VibeCut 是浏览器里的视频剪辑器。用一句话描述剪辑——时长、镜头、节奏、要舍弃的内容——它就会生成剪辑并直接播放。不上传任何文件。">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>VibeCut：说一句，剪出来</title>
+<meta name="description" content="VibeCut 是一个在浏览器里运行的视频剪辑器。说出时长、镜头、节奏和要舍弃的内容，它就生成剪辑并播放。不上传任何东西。">
+<meta name="theme-color" content="#101010">
+<meta property="og:title" content="VibeCut：说一句，剪出来">
+<meta property="og:description" content="VibeCut 是一个在浏览器里运行的视频剪辑器。说出时长、镜头、节奏和要舍弃的内容，它就生成剪辑并播放。不上传任何东西。">
+<meta property="og:image" content="https://vibecut.commandagi.app/og.png">
+<meta property="og:url" content="https://vibecut.commandagi.app/zh/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://vibecut.commandagi.app/zh/">
 <link rel="alternate" hreflang="en" href="https://vibecut.commandagi.app/">
 <link rel="alternate" hreflang="es" href="https://vibecut.commandagi.app/es/">
 <link rel="alternate" hreflang="zh-Hans" href="https://vibecut.commandagi.app/zh/">
 <link rel="alternate" hreflang="x-default" href="https://vibecut.commandagi.app/">
+<link rel="preload" href="../fonts/big-shoulders-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../fonts/hanken-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../style.css">
 <link rel="icon" href="../mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../touch-icon.png">
 </head>
 <body data-locale="zh-Hans" data-root="../">
 <a class="skip" href="#main">跳到正文</a>
 
-<header class="site-head">
-  <div class="wrap">
-    <a class="brand" href="./"><img src="../mark.svg" alt="" width="30" height="30">VibeCut</a>
-    <nav class="site-nav" aria-label="站点">
-      <a href="#cut">编辑器</a>
-      <a href="#how">工作原理</a>
-      <a href="#what">你将得到</a>
-      <a href="#pricing">价格</a>
-    </nav>
-    <button class="lang-btn" type="button" aria-haspopup="dialog" aria-label="语言">
-      <span class="lang-btn__glyph" aria-hidden="true">A<span>/</span><span lang="zh-Hans">文</span></span>
-    </button>
-  </div>
+<header class="slate">
+  <a class="brand" href="../" aria-label="VibeCut 首页"><img src="../wordmark.svg" alt="VibeCut" width="114" height="32"></a>
+  <p class="slate__meta" aria-hidden="true"><span>第 1 卷</span><span>场 01</span><span>条 03</span></p>
+  <button class="lang-btn" type="button" aria-haspopup="dialog" aria-label="语言">
+    <span class="lang-btn__glyph" aria-hidden="true">A<span>/</span><span lang="zh-Hans">文</span></span>
+  </button>
 </header>
 
 <dialog id="lang" aria-label="语言">
@@ -39,111 +41,193 @@
     <li><a href="/es/" hreflang="es" lang="es">Español</a></li>
     <li><a href="/zh/" hreflang="zh-Hans" lang="zh-Hans">简体中文</a></li>
   </ul>
-  <button class="btn" type="button" data-close>关闭</button>
+  <button class="key" type="button" data-close>关闭</button>
 </dialog>
 
 <main id="main">
-  <section class="wrap hero">
-    <h1>说一句，剪出来。</h1>
-    <p class="lede">VibeCut 是一个可以直接对话的视频剪辑器。告诉它时长、要哪些镜头、节奏多快、舍弃什么，它就会生成剪辑、给出时间线，并在这个浏览器里播放。</p>
-    <div class="btns">
-      <a class="btn primary" href="#cut">马上剪一段</a>
-      <a class="btn" href="#how">看它如何决定</a>
+  <section class="screening" id="cut" aria-labelledby="title">
+    <div class="screen-well">
+      <div class="screen" id="screen">
+        <canvas id="preview" width="1280" height="536" aria-label="说一句，剪出来。"></canvas>
+        <p class="frame-tag" aria-hidden="true"><span id="frame-name">2.39:1</span></p>
+      </div>
+      <div class="title-card">
+        <h1 id="title">说一句，剪出来。</h1>
+        <p class="lede">说时长、要哪些镜头、节奏多快、舍弃什么。VibeCut 就在这里剪好并播放。</p>
+      </div>
     </div>
-    <p class="fine">内测期间免费。无需登录，无需上传：示例素材和剪辑引擎都在这个页面里。</p>
-    <p id="lang-hint" hidden><a href="/"></a></p>
-  </section>
 
-  <section class="wrap" id="cut">
-    <div class="editor">
-      <form class="editor__form" id="cut-form">
+    <div class="deck">
+      <div class="transport">
+        <button class="key key--play" type="button" id="play">播放</button>
+        <output class="clock" id="clock" aria-live="off">00:00.0 / 00:20</output>
+        <button class="key" type="button" id="download">下载剪辑单</button>
+        <button class="key" type="button" id="export">导出视频</button>
+      </div>
+
+      <div class="timeline-shell">
+        <p class="rule-label" id="timeline-label">时间线</p>
+        <div class="timeline" id="timeline" role="group" aria-labelledby="timeline-label"></div>
+      </div>
+
+      <form class="cmd" id="cut-form">
         <label for="description">描述你要的剪辑</label>
-        <div class="editor__row">
-          <textarea id="description" name="description" rows="3">20 秒，快剪，机械臂的全景，以标志结尾，不要咖啡</textarea>
-          <button class="btn primary" type="submit">开始剪辑</button>
+        <div class="cmd__row">
+          <textarea id="description" name="description" rows="2">20 秒，快剪，机械臂的全景，以标志结尾，不要咖啡</textarea>
+          <button class="key key--cut" type="submit">开始剪辑</button>
         </div>
-        <div class="presets" aria-label="示例">
-          <button type="button" data-preset="30 秒，慢，清晨的工作室，不要城市">一段安静的片子</button>
-          <button type="button" data-preset="15 秒特写，手和镜头，慢动作">特写练习</button>
-          <button type="button" data-preset="A quiet 30 second film of the studio at dawn, slow">A film (en)</button>
-          <button type="button" data-preset="Un corte de 20 segundos del brazo robot, rápido, sin café">Un corte (es)</button>
+        <div class="takes" role="group" aria-label="示例">
+          <button type="button" data-preset="30 秒，慢，清晨的工作室，不要城市"><span aria-hidden="true">TK 1</span> 一段安静的片子</button>
+          <button type="button" data-preset="15 秒特写，手和镜头，慢动作，竖屏"><span aria-hidden="true">TK 2</span> 特写，竖屏</button>
+          <button type="button" data-preset="A quiet 30 second film of the studio at dawn, slow"><span aria-hidden="true">TK 3</span> A film (en)</button>
+          <button type="button" data-preset="Un corte de 20 segundos del brazo robot, rápido, sin café"><span aria-hidden="true">TK 4</span> Un corte (es)</button>
         </div>
       </form>
 
       <p class="summary" id="summary" role="status"></p>
 
-      <div class="stage">
-        <div>
-          <div class="screen"><canvas id="preview" width="1280" height="720" aria-label="正在播放的剪辑"></canvas></div>
-          <div class="transport">
-            <button class="btn" type="button" id="play">播放</button>
-            <span class="clock" id="clock">00:00.0 / 00:20</span>
-            <button class="btn" type="button" id="download">下载剪辑单</button>
-            <button class="btn" type="button" id="export">导出视频</button>
-          </div>
-        </div>
+      <div class="notes">
         <div class="why">
-          <h3>为什么这样剪</h3>
+          <h2>为什么这样剪</h2>
           <ul id="why"></ul>
-          <p class="save-note">剪辑是一个纯 JSON 文件：每个镜头、起点，以及取自素材的第几秒。要留下画面就导出视频；它在播放时实时录制。</p>
+        </div>
+        <div class="edl-wrap">
+          <h2>剪辑决定表</h2>
+          <table class="edl" id="edl"></table>
+          <p class="save-note">剪辑是一个纯 JSON 文件。导出视频时边播边录，实时进行。</p>
         </div>
       </div>
 
-      <div class="timeline-shell" aria-label="时间线">
-        <div class="timeline" id="timeline"></div>
-      </div>
+      <p class="fine">内测期间免费。无需登录，无需上传：素材和剪辑引擎都在这个页面里。 <span class="disclose">示例素材为本页生成，并非真实的工作室、人物或事件。</span></p>
+      <p id="lang-hint" hidden><a href="/"></a></p>
     </div>
   </section>
 
-  <section class="wrap section" id="how">
-    <h2>工作原理</h2>
-    <p class="sub">一句话变成一份剪辑决定表：哪个镜头、从第几秒开始、多长、按什么顺序。你可以把它看成时间线，也可以把它看成文件。</p>
-    <ol class="steps">
-      <li><strong>描述</strong>用秒或分钟说时长，说镜头类型、节奏、要的对象和不要的内容。支持英文、西班牙文和中文。</li>
-      <li><strong>剪辑</strong>引擎把你的词和素材对上，精确保留你要的时长，并且以片尾收尾——除非你排除了它。</li>
-      <li><strong>保存</strong>拖动时间线、播放剪辑、把剪辑下载成 JSON，或在浏览器里导出成视频文件。</li>
+  <section class="interstitial" aria-labelledby="reason">
+    <div class="interstitial__picture"><video class="loop " muted loop playsinline preload="none" poster="../media/city-night.webp" aria-hidden="true" tabindex="-1">
+        <source src="../media/city-night.webm" type='video/webm; codecs="av01.0.05M.08"'>
+        <source src="../media/city-night.mp4" type="video/mp4">
+      </video></div>
+    <div class="interstitial__words">
+      <h2 id="reason">每一刀都有理由。</h2>
+      <p>引擎读的是你的话，不是你的心思。同样的话，永远剪出同样的片子。</p>
+    </div>
+  </section>
+
+  <section class="plates" id="how" aria-labelledby="how-h">
+    <h2 class="section-title" id="how-h"><span class="tc" aria-hidden="true">00:01:00:00</span>如何决定</h2>
+    <ol>
+      <li class="plate">
+        <div class="plate__picture"><video class="loop " muted loop playsinline preload="none" poster="../media/lens-hands.webp" aria-hidden="true" tabindex="-1">
+        <source src="../media/lens-hands.webm" type='video/webm; codecs="av01.0.05M.08"'>
+        <source src="../media/lens-hands.mp4" type="video/mp4">
+      </video></div>
+        <div class="plate__words">
+          <p class="plate__num" aria-hidden="true">01</p>
+          <h3>描述</h3>
+          <p>时长、镜头类型、节奏、对象、要舍弃的内容，以及画幅。支持英文、西班牙文和中文。</p>
+        </div>
+      </li>
+      <li class="plate">
+        <div class="plate__picture"><video class="loop " muted loop playsinline preload="none" poster="../media/lathe-turn.webp" aria-hidden="true" tabindex="-1">
+        <source src="../media/lathe-turn.webm" type='video/webm; codecs="av01.0.05M.08"'>
+        <source src="../media/lathe-turn.mp4" type="video/mp4">
+      </video></div>
+        <div class="plate__words">
+          <p class="plate__num" aria-hidden="true">02</p>
+          <h3>剪辑</h3>
+          <p>你的话和素材对上。时长精确到毫秒。以片尾收尾，除非你说不要。</p>
+        </div>
+      </li>
+      <li class="plate">
+        <div class="plate__picture"><video class="loop " muted loop playsinline preload="none" poster="../media/arm-stack.webp" aria-hidden="true" tabindex="-1">
+        <source src="../media/arm-stack.webm" type='video/webm; codecs="av01.0.05M.08"'>
+        <source src="../media/arm-stack.mp4" type="video/mp4">
+      </video></div>
+        <div class="plate__words">
+          <p class="plate__num" aria-hidden="true">03</p>
+          <h3>保存</h3>
+          <p>拖动时间线、播放、把剪辑下载成 JSON，或在浏览器里导出视频。</p>
+        </div>
+      </li>
     </ol>
   </section>
 
-  <section class="wrap section" id="what">
-    <h2>你将得到</h2>
-    <p class="sub">第一版，今天就能用。示例素材是一间工作室；你自己的素材和更长的视频是下一版。</p>
-    <div class="cards">
-      <div class="card"><h3>看得懂的剪辑</h3><p>每个决定都是一个文件：镜头、入点和出点、速度，以及每个选择的理由。不要账号，不用排队。</p></div>
-      <div class="card"><h3>用文字说理由</h3><p>VibeCut 会说清为什么舍弃某个镜头、为什么以片尾收尾。剪辑是一次对话，不是黑箱。</p></div>
-      <div class="card"><h3>在你的浏览器里</h3><p>引擎、素材和播放都在页面上运行。不上传任何东西，也不做任何追踪。</p></div>
-      <div class="card"><h3>三种语言</h3><p>英文、西班牙文和简体中文，同一个站点，用 A/文 切换。</p></div>
-    </div>
+  <section class="contact" id="what" aria-labelledby="what-h">
+    <h2 class="section-title" id="what-h"><span class="tc" aria-hidden="true">00:02:00:00</span>你得到什么</h2>
+    <ul class="strip">
+      <li class="frame">
+        <img src="../media/dawn-studio.webp" alt="" width="960" height="540" loading="lazy" decoding="async">
+        <p class="frame__no" aria-hidden="true">01A</p>
+        <h3>看得懂的剪辑</h3>
+        <p>镜头、入点出点、速度，以及每一个选择的理由。是文件，不是黑箱。</p>
+      </li>
+      <li class="frame">
+        <img src="../media/studio-wide.webp" alt="" width="960" height="540" loading="lazy" decoding="async">
+        <p class="frame__no" aria-hidden="true">02A</p>
+        <h3>用文字说理由</h3>
+        <p>为什么舍弃某个镜头，为什么在这里结束。</p>
+      </li>
+      <li class="frame">
+        <img src="../media/coffee-steam.webp" alt="" width="960" height="540" loading="lazy" decoding="async">
+        <p class="frame__no" aria-hidden="true">03A</p>
+        <h3>在你的浏览器里</h3>
+        <p>引擎、素材和播放都在页面上运行。不上传，不追踪。</p>
+      </li>
+      <li class="frame">
+        <img src="../media/city-night.webp" alt="" width="960" height="540" loading="lazy" decoding="async">
+        <p class="frame__no" aria-hidden="true">04A</p>
+        <h3>三种语言</h3>
+        <p>英文、西班牙文和简体中文，点 A/文 切换。</p>
+      </li>
+    </ul>
   </section>
 
-  <section class="wrap section" id="pricing">
-    <h2>价格</h2>
-    <p class="sub">内测期间 VibeCut 免费。等到工作室值得收费时，我们再收。</p>
-    <div class="plans">
-      <div class="plan">
+  <section class="credits" id="pricing" aria-labelledby="credits-h">
+    <h2 class="section-title" id="credits-h"><span class="tc" aria-hidden="true">00:03:00:00</span>演职员表</h2>
+    <p class="credits__sub">内测期间免费。等到工作室版值得收费时，我们再收。</p>
+    <div class="billing">
+      <div class="bill">
         <h3>内测</h3>
-        <p class="price">免费</p>
+        <p class="bill__price">免费</p>
         <p>本页的编辑器、示例素材、剪辑文件和导出的视频。</p>
-        <a class="btn primary" href="mailto:hello@vibecut.me">写信给我们</a>
+        <a class="key key--cut" href="mailto:hello@vibecut.me">写信给我们</a>
       </div>
-      <div class="plan">
+      <div class="bill">
         <h3>工作室版</h3>
-        <p class="price">以后</p>
-        <p>你自己的素材、一小时的剪辑，以及常用镜头库。先告诉我们你需要什么。</p>
-        <a class="btn" href="mailto:hello@vibecut.me?subject=VibeCut%20Studio">了解一下</a>
+        <p class="bill__price">以后</p>
+        <p>你自己的素材、一小时的剪辑、常用镜头库。先告诉我们你需要什么。</p>
+        <a class="key" href="mailto:hello@vibecut.me?subject=VibeCut%20Studio">了解一下</a>
       </div>
     </div>
   </section>
 </main>
 
-<footer class="site-foot">
-  <div class="wrap">
-    <p>VibeCut 是 CommandAGI 旗下公司。<a href="mailto:hello@vibecut.me">hello@vibecut.me</a></p>
-    <p><a href="#cut">编辑器</a> · <a href="#how">工作原理</a> · <a href="#pricing">价格</a></p>
-  </div>
+<footer class="roll">
+  <dl>
+    <div><dt>剪辑引擎</dt><dd>lib/edl.mjs，就在本页</dd></div>
+    <div><dt>素材</dt><dd>用 fal 生成（Kling 2.5）</dd></div>
+    <div><dt>字体</dt><dd>Big Shoulders、Hanken Grotesk、DM Mono</dd></div>
+    <div><dt>出品</dt><dd>CommandAGI</dd></div>
+    <div><dt>演职员表</dt><dd><a href="mailto:hello@vibecut.me">hello@vibecut.me</a></dd></div>
+  </dl>
+  <p class="disclose">示例素材为本页生成，并非真实的工作室、人物或事件。</p>
+  <p class="fin">完。</p>
 </footer>
 
+<nav class="reel" aria-label="站点">
+  <ol class="reel__track">
+    <li><a href="#cut"><span class="reel__no" aria-hidden="true">R1</span> <span class="reel__label">剪辑</span></a></li>
+    <li><a href="#how"><span class="reel__no" aria-hidden="true">R2</span> <span class="reel__label">如何决定</span></a></li>
+    <li><a href="#what"><span class="reel__no" aria-hidden="true">R3</span> <span class="reel__label">你得到什么</span></a></li>
+    <li><a href="#pricing"><span class="reel__no" aria-hidden="true">R4</span> <span class="reel__label">演职员表</span></a></li>
+  </ol>
+  <span class="reel__head" aria-hidden="true"></span>
+  <span class="reel__tc" id="scroll-tc" aria-hidden="true">00:00:00:00</span>
+</nav>
+
 <script type="module" src="../app/lang.mjs"></script>
+<script type="module" src="../app/reels.mjs"></script>
 <script type="module" src="../app/app.mjs"></script>
 </body>
 </html>

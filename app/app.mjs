@@ -1,7 +1,8 @@
 // The VibeCut demo: a description in, a cut out, played on the page. It sends nothing (the page's policy forbids
-// connections): the cut engine, the eight sample shots and the playback are all in this folder.
+// connections): the cut engine, the sample footage and the playback are all in this folder.
 import { cut, toFile } from '../lib/edl.mjs';
 import { drawAt, fit, FRAME } from './scenes.mjs';
+import { footage, poster } from './footage.mjs';
 import { t, name, reasonSentence } from './i18n.mjs';
 
 const locale = document.body.dataset.locale || 'en';
@@ -17,6 +18,12 @@ const playButton = $('play');
 const clock = $('clock');
 const whyList = $('why');
 const summary = $('summary');
+const screen = $('screen');
+const screening = document.querySelector('.screening');
+const edl = $('edl');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const clips = footage(root, () => { if (!playing) paint(); });
+const FRAME_NAMES = { scope: '2.39:1', '16:9': '16:9', square: '1:1', vertical: '9:16' };
 
 let plan = null;
 let at = 0;
@@ -35,37 +42,56 @@ function shotAt(time) {
 }
 
 function paint() {
-    const scale = Math.min(canvas.clientWidth / FRAME.width, canvas.clientHeight / FRAME.height);
-    canvas.width = Math.max(2, Math.round(FRAME.width * scale));
-    canvas.height = Math.max(2, Math.round(FRAME.height * scale));
-    fit(ctx, canvas);
-    const found = shotAt(at);
-    if (found) drawAt(ctx, found.shot, found.source);
-    else {
-        ctx.fillStyle = '#0b0d12';
-        ctx.fillRect(0, 0, FRAME.width, FRAME.height);
+    // The canvas takes the cut's frame at the screen's size (two device pixels at most, 1280 wide at most).
+    const aspect = plan?.aspect ?? FRAME.width / FRAME.height;
+    const density = Math.min(2, window.devicePixelRatio || 1);
+    const width = Math.max(2, Math.min(1280, Math.round((canvas.clientWidth || 640) * density)));
+    const height = Math.max(2, Math.round(width / aspect));
+    if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
     }
-    drawOverlay(found);
+    const found = shotAt(at);
+    const video = found ? clips.frame(found.shot, found.source, playing) : null;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (video) {
+        // Cover: the clip fills the frame and the frame crops it, as a reframe does.
+        const scale = Math.max(width / video.videoWidth, height / video.videoHeight);
+        const w = video.videoWidth * scale;
+        const h = video.videoHeight * scale;
+        ctx.drawImage(video, (width - w) / 2, (height - h) / 2, w, h);
+        ctx.setTransform(width / FRAME.width, 0, 0, width / FRAME.width, 0, 0);
+    } else {
+        fit(ctx, canvas);
+        if (found) drawAt(ctx, found.shot, found.source);
+        else {
+            ctx.fillStyle = '#101010';
+            ctx.fillRect(0, 0, FRAME.width, FRAME.height);
+        }
+        ctx.setTransform(width / FRAME.width, 0, 0, width / FRAME.width, 0, 0);
+    }
+    drawOverlay(found, FRAME.width, height * (FRAME.width / width));
     movePlayhead();
     clock.textContent = `${format(at)} / ${format(plan?.seconds ?? 0)}`;
 }
 
-/** The timecode, the shot's name and the kind of shot, burnt over the picture as an editor shows them. */
-function drawOverlay(found) {
+/** The timecode and the shot's name, burnt over the picture as an editor's monitor shows them. */
+function drawOverlay(found, w, h) {
+    const s = Math.max(1, w / 1280 * (w / h < 1.2 ? 2.2 : 1));
     ctx.save();
-    ctx.font = '600 26px ui-monospace, "SF Mono", Menlo, monospace';
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';
-    ctx.fillText(format(at), FRAME.width - 190, 54);
+    ctx.font = `500 ${Math.round(22 * s)}px "DM Mono", ui-monospace, monospace`;
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    const code = format(at);
+    const codeWidth = ctx.measureText(code).width;
+    ctx.fillRect(w - codeWidth - 44 * s, 18 * s, codeWidth + 24 * s, 36 * s);
+    ctx.fillStyle = '#f3f0e8';
+    ctx.fillText(code, w - codeWidth - 32 * s, 44 * s);
     if (found) {
-        const label = name(locale, 'shot', found.shot.shot);
-        ctx.font = '500 22px "Helvetica Neue", Arial, sans-serif';
-        ctx.fillStyle = 'rgba(255,255,255,0.55)';
-        ctx.fillText(label.toUpperCase(), 40, FRAME.height - 40);
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.font = '600 24px "Helvetica Neue", Arial, sans-serif';
+        ctx.font = `500 ${Math.round(16 * s)}px "DM Mono", ui-monospace, monospace`;
+        ctx.fillStyle = 'rgba(243,240,232,0.8)';
         ctx.textAlign = 'right';
-        ctx.fillText(name(locale, 'clip', found.shot.clip), FRAME.width - 40, FRAME.height - 40);
-        ctx.textAlign = 'left';
+        ctx.fillText(`${name(locale, 'shot', found.shot.shot).toUpperCase()} · ${name(locale, 'clip', found.shot.clip)}`, w - 32 * s, h - 28 * s);
     }
     ctx.restore();
 }
@@ -80,6 +106,7 @@ function play() {
     if (!plan) return;
     if (at >= plan.seconds - 1e-3) at = 0;
     playing = true;
+    screening?.classList.add('is-playing');
     playButton.textContent = t(locale, 'editor.pause');
     lastFrame = performance.now();
     cancelAnimationFrame(raf);
@@ -91,6 +118,8 @@ function play() {
         if (at >= plan.seconds) {
             at = plan.seconds;
             playing = false;
+            screening?.classList.remove('is-playing');
+            clips.pauseAll();
             playButton.textContent = t(locale, 'editor.play');
         }
         paint();
@@ -101,6 +130,8 @@ function play() {
 
 function pause() {
     playing = false;
+    screening?.classList.remove('is-playing');
+    clips.pauseAll();
     cancelAnimationFrame(raf);
     playButton.textContent = t(locale, 'editor.play');
 }
@@ -116,6 +147,8 @@ function drawTimeline() {
         block.style.flexGrow = String(shot.seconds);
         block.style.flexBasis = '0';
         block.dataset.start = String(shot.start);
+        const still = poster(root, shot.clip);
+        if (still) block.style.backgroundImage = `url("${still}")`;
         block.title = `${name(locale, 'clip', shot.clip)} · ${shot.seconds.toFixed(1)}s`;
         const label = document.createElement('span');
         label.className = 'clip__name';
@@ -141,6 +174,43 @@ function movePlayhead() {
     const head = document.getElementById('playhead');
     if (!head || !plan?.seconds) return;
     head.style.left = `${(at / plan.seconds) * 100}%`;
+    const now = plan.shots.findIndex(s => at >= s.start && at < s.end);
+    for (const [i, row] of [...edl.tBodies[0]?.rows ?? []].entries()) row.classList.toggle('is-now', i === now);
+}
+
+/** Seconds as a timecode at 24 frames: HH:MM:SS:FF, the edit decision list's own clock. */
+function timecode(seconds) {
+    const frames = Math.round(seconds * 24);
+    const f = frames % 24;
+    const s = Math.floor(frames / 24);
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}:${pad(f)}`;
+}
+
+/** The cut as an edit decision list: event, clip, source in, record in, record out. */
+function showEdl() {
+    edl.replaceChildren();
+    const head = edl.createTHead().insertRow();
+    for (const label of ['#', t(locale, 'edl.clip'), t(locale, 'edl.src'), t(locale, 'edl.in'), t(locale, 'edl.out')]) {
+        const th = document.createElement('th');
+        th.scope = 'col';
+        th.textContent = label;
+        head.append(th);
+    }
+    const body = edl.createTBody();
+    plan.shots.forEach((shot, i) => {
+        const row = body.insertRow();
+        for (const text of [String(i + 1).padStart(3, '0'), name(locale, 'clip', shot.clip), timecode(shot.sourceIn), timecode(shot.start), timecode(shot.end)]) {
+            row.insertCell().textContent = text;
+        }
+    });
+}
+
+/** The screen takes the cut's frame; the title card names it. */
+function showFrame() {
+    screen.dataset.frame = plan.frame;
+    screen.style.setProperty('--aspect', String(plan.aspect));
+    $('frame-name').textContent = FRAME_NAMES[plan.frame] ?? plan.frame;
 }
 
 function showWhy() {
@@ -166,12 +236,22 @@ function cutNow() {
         return;
     }
     pause();
-    plan = cut(text, { locale });
-    at = 0;
-    summary.textContent = `${t(locale, 'editor.total', { n: plan.seconds.toFixed(0) })} · ${t(locale, 'editor.shot', { n: plan.shots.length })}`;
-    drawTimeline();
-    showWhy();
-    paint();
+    const next = cut(text, { locale });
+    clips.want(next.shots.map(s => s.clip));
+    const apply = () => {
+        plan = next;
+        at = 0;
+        summary.textContent = `${t(locale, 'editor.total', { n: plan.seconds.toFixed(0) })} · ${t(locale, 'editor.shot', { n: plan.shots.length })} · ${FRAME_NAMES[plan.frame]}`;
+        showFrame();
+        drawTimeline();
+        showWhy();
+        showEdl();
+        paint();
+    };
+    // A recut is a state change the eye should follow: the screen morphs to its new frame and the strip re-lays.
+    if (plan && document.startViewTransition && !reduced.matches) document.startViewTransition(apply);
+    else apply();
+    plan = next;
     return plan;
 }
 
@@ -205,6 +285,7 @@ async function exportVideo() {
     recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
     const done = new Promise(resolve => { recorder.onstop = resolve; });
     button.disabled = true;
+    button.classList.add('is-recording');
     button.textContent = t(locale, 'editor.exporting');
     at = 0;
     paint();
@@ -229,6 +310,7 @@ async function exportVideo() {
     setTimeout(() => URL.revokeObjectURL(url), 4000);
     at = Math.min(wasAt, plan.seconds);
     button.disabled = false;
+    button.classList.remove('is-recording');
     button.textContent = t(locale, 'editor.export');
     paint();
 }
@@ -251,8 +333,9 @@ for (const preset of document.querySelectorAll('[data-preset]')) {
 
 window.addEventListener('resize', () => { if (plan) paint(); });
 
-// The page's first cut, so a visitor who scrolls to the editor sees a cut rather than an empty frame.
+// The page's first cut, so the screen opens on a cut rather than an empty frame; the canvas's fonts repaint it.
 cutNow();
+document.fonts?.ready.then(() => { if (!playing) paint(); });
 if (!plan) input.value = '';
 
 // Kept for the browser check: the cut the page holds, and the shot it is on.

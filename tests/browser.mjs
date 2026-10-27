@@ -220,6 +220,26 @@ async function checkPage(browser, url, label, { heading, playLabel, export: doEx
             `${label}: the play button flips in this language (${label0})`);
         await page.evaluate('document.getElementById("play").click()');
 
+        // A frame word reframes the cut: the screen and the canvas take the shape, the length stays.
+        await page.evaluate(`(() => {
+            document.getElementById('description').value = ${JSON.stringify(label === 'zh' ? '10 秒，竖屏，城市' : label === 'es' ? '10 segundos, vertical, la ciudad' : '10 seconds, vertical, the city')};
+            document.getElementById('cut-form').requestSubmit();
+        })()`);
+        await sleep(900);
+        const framed = await page.evaluate(`({ frame: document.getElementById('screen').dataset.frame, w: document.getElementById('preview').width, h: document.getElementById('preview').height, s: window.vibecut.plan.seconds })`);
+        assert(framed.frame === 'vertical' && framed.h > framed.w && Math.abs(framed.s - 10) < 0.01,
+            `${label}: "vertical" reframes the screen to 9:16 (${framed.w}×${framed.h}, ${framed.s}s)`);
+
+        // The generated footage is served and plays on the screen: a looping clip and the editor's own clip load.
+        const media = await page.evaluate(`(async () => {
+            const v = document.createElement('video');
+            v.muted = true;
+            v.src = document.body.dataset.root + 'media/city-night.' + (v.canPlayType('video/webm; codecs="av01.0.05M.08"') ? 'webm' : 'mp4');
+            await new Promise((ok, fail) => { v.onloadeddata = ok; v.onerror = () => fail(new Error('clip did not load')); setTimeout(ok, 8000); });
+            return { ready: v.readyState, w: v.videoWidth };
+        })()`, { awaitPromise: true });
+        assert(media.ready >= 2 && media.w > 0, `${label}: the generated footage loads (${media.w}px wide)`);
+
         // A preset cuts too.
         await page.evaluate('document.querySelector("[data-preset]").click()');
         await sleep(300);
@@ -292,7 +312,7 @@ async function main() {
     const results = [];
     try {
         results.push(await checkPage(browser, `${base}/`, 'en', { heading: 'Describe the cut. Watch it play.', playLabel: 'Play', export: process.env.EXPORT !== '0' }));
-        results.push(await checkPage(browser, `${base}/es/`, 'es', { heading: 'Describe el corte. Míralo sonar.', playLabel: 'Reproducir' }));
+        results.push(await checkPage(browser, `${base}/es/`, 'es', { heading: 'Describe el corte. Míralo en pantalla.', playLabel: 'Reproducir' }));
         results.push(await checkPage(browser, `${base}/zh/`, 'zh', { heading: '说一句，剪出来。', playLabel: '播放' }));
     } finally {
         browser.child.kill('SIGKILL');

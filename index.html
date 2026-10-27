@@ -3,33 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>VibeCut: cut video by description</title>
 <meta name="description" content="VibeCut is a browser-native video editor. Describe the cut — the length, the shots, the pace, what to leave out — and it builds the edit and plays it. Nothing is uploaded.">
+<meta name="theme-color" content="#101010">
+<meta property="og:title" content="VibeCut: cut video by description">
+<meta property="og:description" content="VibeCut is a browser-native video editor. Describe the cut — the length, the shots, the pace, what to leave out — and it builds the edit and plays it. Nothing is uploaded.">
+<meta property="og:image" content="https://vibecut.commandagi.app/og.png">
+<meta property="og:url" content="https://vibecut.commandagi.app/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://vibecut.commandagi.app/">
 <link rel="alternate" hreflang="en" href="https://vibecut.commandagi.app/">
 <link rel="alternate" hreflang="es" href="https://vibecut.commandagi.app/es/">
 <link rel="alternate" hreflang="zh-Hans" href="https://vibecut.commandagi.app/zh/">
 <link rel="alternate" hreflang="x-default" href="https://vibecut.commandagi.app/">
+<link rel="preload" href="fonts/big-shoulders-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/hanken-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="touch-icon.png">
 </head>
 <body data-locale="en" data-root="">
 <a class="skip" href="#main">Skip to the content</a>
 
-<header class="site-head">
-  <div class="wrap">
-    <a class="brand" href="./"><img src="mark.svg" alt="" width="30" height="30">VibeCut</a>
-    <nav class="site-nav" aria-label="Site">
-      <a href="#cut">The editor</a>
-      <a href="#how">How it works</a>
-      <a href="#what">What you get</a>
-      <a href="#pricing">Pricing</a>
-    </nav>
-    <button class="lang-btn" type="button" aria-haspopup="dialog" aria-label="Language">
-      <span class="lang-btn__glyph" aria-hidden="true">A<span>/</span><span lang="zh-Hans">文</span></span>
-    </button>
-  </div>
+<header class="slate">
+  <a class="brand" href="./" aria-label="VibeCut, home"><img src="wordmark.svg" alt="VibeCut" width="114" height="32"></a>
+  <p class="slate__meta" aria-hidden="true"><span>Reel 1</span><span>Sc. 01</span><span>Tk. 03</span></p>
+  <button class="lang-btn" type="button" aria-haspopup="dialog" aria-label="Language">
+    <span class="lang-btn__glyph" aria-hidden="true">A<span>/</span><span lang="zh-Hans">文</span></span>
+  </button>
 </header>
 
 <dialog id="lang" aria-label="Language">
@@ -39,111 +41,193 @@
     <li><a href="/es/" hreflang="es" lang="es">Español</a></li>
     <li><a href="/zh/" hreflang="zh-Hans" lang="zh-Hans">简体中文</a></li>
   </ul>
-  <button class="btn" type="button" data-close>Close</button>
+  <button class="key" type="button" data-close>Close</button>
 </dialog>
 
 <main id="main">
-  <section class="wrap hero">
-    <h1>Describe the cut. Watch it play.</h1>
-    <p class="lede">VibeCut is a video editor you talk to. Say how long, which shots, how fast, and what to leave out. It builds the cut, shows you the timeline, and plays it here in your browser.</p>
-    <div class="btns">
-      <a class="btn primary" href="#cut">Cut a video now</a>
-      <a class="btn" href="#how">See how it decides</a>
+  <section class="screening" id="cut" aria-labelledby="title">
+    <div class="screen-well">
+      <div class="screen" id="screen">
+        <canvas id="preview" width="1280" height="536" aria-label="Describe the cut. Watch it play."></canvas>
+        <p class="frame-tag" aria-hidden="true"><span id="frame-name">2.39:1</span></p>
+      </div>
+      <div class="title-card">
+        <h1 id="title">Describe the cut. Watch it play.</h1>
+        <p class="lede">Say how long, which shots, how fast, what to leave out. VibeCut cuts it and plays it here.</p>
+      </div>
     </div>
-    <p class="fine">Free while it is in beta. No sign-in, no upload: the sample footage and the cut engine are in this page.</p>
-    <p id="lang-hint" hidden><a href="/es/"></a></p>
-  </section>
 
-  <section class="wrap" id="cut">
-    <div class="editor">
-      <form class="editor__form" id="cut-form">
+    <div class="deck">
+      <div class="transport">
+        <button class="key key--play" type="button" id="play">Play</button>
+        <output class="clock" id="clock" aria-live="off">00:00.0 / 00:20</output>
+        <button class="key" type="button" id="download">Download the cut</button>
+        <button class="key" type="button" id="export">Render a video</button>
+      </div>
+
+      <div class="timeline-shell">
+        <p class="rule-label" id="timeline-label">Timeline</p>
+        <div class="timeline" id="timeline" role="group" aria-labelledby="timeline-label"></div>
+      </div>
+
+      <form class="cmd" id="cut-form">
         <label for="description">Describe the cut</label>
-        <div class="editor__row">
-          <textarea id="description" name="description" rows="3">A 20 second cut, fast, wide shots of the robot arm, end with the logo, no coffee</textarea>
-          <button class="btn primary" type="submit">Cut it</button>
+        <div class="cmd__row">
+          <textarea id="description" name="description" rows="2">A 20 second cut, fast, wide shots of the robot arm, end with the logo, no coffee</textarea>
+          <button class="key key--cut" type="submit">Cut it</button>
         </div>
-        <div class="presets" aria-label="Examples">
-          <button type="button" data-preset="A quiet 30 second film of the studio at dawn, slow, no city">A quiet film</button>
-          <button type="button" data-preset="15 seconds of close-ups, the hands and the lens, slow motion">Close-up study</button>
-          <button type="button" data-preset="Un corte de 20 segundos del brazo robot, rápido, sin café">Un corte (es)</button>
-          <button type="button" data-preset="25 秒，全景，城市，快剪，不要咖啡">空镜剪辑 (zh)</button>
+        <div class="takes" role="group" aria-label="Takes">
+          <button type="button" data-preset="A quiet 30 second film of the studio at dawn, slow, no city"><span aria-hidden="true">TK 1</span> A quiet film</button>
+          <button type="button" data-preset="15 seconds of close-ups, the hands and the lens, slow motion, vertical"><span aria-hidden="true">TK 2</span> Close-ups, vertical</button>
+          <button type="button" data-preset="Un corte de 20 segundos del brazo robot, rápido, sin café, cuadrado"><span aria-hidden="true">TK 3</span> Un corte (es)</button>
+          <button type="button" data-preset="25 秒，全景，城市，快剪，不要咖啡"><span aria-hidden="true">TK 4</span> 空镜剪辑 (zh)</button>
         </div>
       </form>
 
       <p class="summary" id="summary" role="status"></p>
 
-      <div class="stage">
-        <div>
-          <div class="screen"><canvas id="preview" width="1280" height="720" aria-label="The cut, playing"></canvas></div>
-          <div class="transport">
-            <button class="btn" type="button" id="play">Play</button>
-            <span class="clock" id="clock">00:00.0 / 00:20</span>
-            <button class="btn" type="button" id="download">Download the cut</button>
-            <button class="btn" type="button" id="export">Render a video</button>
-          </div>
-        </div>
+      <div class="notes">
         <div class="why">
-          <h3>Why this cut</h3>
+          <h2>Why this cut</h2>
           <ul id="why"></ul>
-          <p class="save-note">The cut is a plain JSON file: every shot, where it starts, which second of the source it uses. Render a video to keep the picture; it records as it plays, in real time.</p>
+        </div>
+        <div class="edl-wrap">
+          <h2>Edit decision list</h2>
+          <table class="edl" id="edl"></table>
+          <p class="save-note">The cut is a plain JSON file. A render records as it plays, in real time.</p>
         </div>
       </div>
 
-      <div class="timeline-shell" aria-label="Timeline">
-        <div class="timeline" id="timeline"></div>
-      </div>
+      <p class="fine">Free in beta. No sign-in, no upload: the footage and the cut engine are in this page. <span class="disclose">Sample footage generated for this page. No real studio, person or event.</span></p>
+      <p id="lang-hint" hidden><a href="/"></a></p>
     </div>
   </section>
 
-  <section class="wrap section" id="how">
-    <h2>How it works</h2>
-    <p class="sub">One description becomes an edit decision list: which shot, from which second, for how long, in which order. You see the list as a timeline and in a file.</p>
-    <ol class="steps">
-      <li><strong>Describe it</strong>Length in seconds or minutes, kinds of shot, pace, the subjects you want, and what to leave out. English, Spanish or Chinese.</li>
-      <li><strong>It cuts</strong>The engine matches your words to the footage, keeps the length you asked for to the millisecond, and ends on the card unless you rule it out.</li>
-      <li><strong>Keep it</strong>Scrub the timeline, play the cut, download the cut as JSON, or render it to a video file in the browser.</li>
+  <section class="interstitial" aria-labelledby="reason">
+    <div class="interstitial__picture"><video class="loop " muted loop playsinline preload="none" poster="media/city-night.webp" aria-hidden="true" tabindex="-1">
+        <source src="media/city-night.webm" type='video/webm; codecs="av01.0.05M.08"'>
+        <source src="media/city-night.mp4" type="video/mp4">
+      </video></div>
+    <div class="interstitial__words">
+      <h2 id="reason">Every cut has a reason.</h2>
+      <p>The engine reads your words, not your mind. Same words, same cut, every time.</p>
+    </div>
+  </section>
+
+  <section class="plates" id="how" aria-labelledby="how-h">
+    <h2 class="section-title" id="how-h"><span class="tc" aria-hidden="true">00:01:00:00</span>How it decides</h2>
+    <ol>
+      <li class="plate">
+        <div class="plate__picture"><video class="loop " muted loop playsinline preload="none" poster="media/lens-hands.webp" aria-hidden="true" tabindex="-1">
+        <source src="media/lens-hands.webm" type='video/webm; codecs="av01.0.05M.08"'>
+        <source src="media/lens-hands.mp4" type="video/mp4">
+      </video></div>
+        <div class="plate__words">
+          <p class="plate__num" aria-hidden="true">01</p>
+          <h3>Describe it</h3>
+          <p>Length, kinds of shot, pace, subjects, what to leave out, and the frame. English, Spanish or Chinese.</p>
+        </div>
+      </li>
+      <li class="plate">
+        <div class="plate__picture"><video class="loop " muted loop playsinline preload="none" poster="media/lathe-turn.webp" aria-hidden="true" tabindex="-1">
+        <source src="media/lathe-turn.webm" type='video/webm; codecs="av01.0.05M.08"'>
+        <source src="media/lathe-turn.mp4" type="video/mp4">
+      </video></div>
+        <div class="plate__words">
+          <p class="plate__num" aria-hidden="true">02</p>
+          <h3>It cuts</h3>
+          <p>Your words meet the footage. The length you asked for, to the millisecond. It ends on the card unless you say no.</p>
+        </div>
+      </li>
+      <li class="plate">
+        <div class="plate__picture"><video class="loop " muted loop playsinline preload="none" poster="media/arm-stack.webp" aria-hidden="true" tabindex="-1">
+        <source src="media/arm-stack.webm" type='video/webm; codecs="av01.0.05M.08"'>
+        <source src="media/arm-stack.mp4" type="video/mp4">
+      </video></div>
+        <div class="plate__words">
+          <p class="plate__num" aria-hidden="true">03</p>
+          <h3>Keep it</h3>
+          <p>Scrub the timeline, play it, download the cut as JSON, or render a video in the browser.</p>
+        </div>
+      </li>
     </ol>
   </section>
 
-  <section class="wrap section" id="what">
-    <h2>What you get</h2>
-    <p class="sub">A first version, built to be used today. The sample footage is a studio; your own footage and a longer render are the next release.</p>
-    <div class="cards">
-      <div class="card"><h3>A cut you can read</h3><p>Every decision is a file: shots, in and out points, speed, and the reasons for each choice. No account, no waiting on a queue.</p></div>
-      <div class="card"><h3>The reasons, in words</h3><p>VibeCut says why it left a shot out or ended on the card, so a cut is a conversation, not a black box.</p></div>
-      <div class="card"><h3>In your browser</h3><p>The engine, the footage and the playback run on the page. Nothing is uploaded and nothing is tracked.</p></div>
-      <div class="card"><h3>Three languages</h3><p>English, Spanish and Simplified Chinese, on the same site, with the A/文 picker.</p></div>
-    </div>
+  <section class="contact" id="what" aria-labelledby="what-h">
+    <h2 class="section-title" id="what-h"><span class="tc" aria-hidden="true">00:02:00:00</span>What you keep</h2>
+    <ul class="strip">
+      <li class="frame">
+        <img src="media/dawn-studio.webp" alt="" width="960" height="540" loading="lazy" decoding="async">
+        <p class="frame__no" aria-hidden="true">01A</p>
+        <h3>A cut you can read</h3>
+        <p>Shots, in and out points, speed and the reason for each. A file, not a black box.</p>
+      </li>
+      <li class="frame">
+        <img src="media/studio-wide.webp" alt="" width="960" height="540" loading="lazy" decoding="async">
+        <p class="frame__no" aria-hidden="true">02A</p>
+        <h3>Reasons in words</h3>
+        <p>Why a shot is out, why it ends where it ends.</p>
+      </li>
+      <li class="frame">
+        <img src="media/coffee-steam.webp" alt="" width="960" height="540" loading="lazy" decoding="async">
+        <p class="frame__no" aria-hidden="true">03A</p>
+        <h3>In your browser</h3>
+        <p>Engine, footage and playback run on the page. Nothing uploaded, nothing tracked.</p>
+      </li>
+      <li class="frame">
+        <img src="media/city-night.webp" alt="" width="960" height="540" loading="lazy" decoding="async">
+        <p class="frame__no" aria-hidden="true">04A</p>
+        <h3>Three languages</h3>
+        <p>English, Spanish and Simplified Chinese, behind the A/文 button.</p>
+      </li>
+    </ul>
   </section>
 
-  <section class="wrap section" id="pricing">
-    <h2>Pricing</h2>
-    <p class="sub">VibeCut is free while it is in beta. We charge for the studio, when the studio is worth charging for.</p>
-    <div class="plans">
-      <div class="plan">
+  <section class="credits" id="pricing" aria-labelledby="credits-h">
+    <h2 class="section-title" id="credits-h"><span class="tc" aria-hidden="true">00:03:00:00</span>Credits</h2>
+    <p class="credits__sub">Free while it is in beta. We charge for the studio when the studio is worth charging for.</p>
+    <div class="billing">
+      <div class="bill">
         <h3>Beta</h3>
-        <p class="price">Free</p>
-        <p>The editor on this page, the sample footage, the cut file and the rendered video.</p>
-        <a class="btn primary" href="mailto:hello@vibecut.me">Write to us</a>
+        <p class="bill__price">Free</p>
+        <p>This editor, the sample footage, the cut file and the rendered video.</p>
+        <a class="key key--cut" href="mailto:hello@vibecut.me">Write to us</a>
       </div>
-      <div class="plan">
+      <div class="bill">
         <h3>Studio</h3>
-        <p class="price">Later</p>
-        <p>Your own footage, cuts of an hour, and a library of the shots you use most. Tell us what you need first.</p>
-        <a class="btn" href="mailto:hello@vibecut.me?subject=VibeCut%20Studio">Ask about it</a>
+        <p class="bill__price">Later</p>
+        <p>Your own footage, hour-long cuts, a library of your shots. Tell us what you need first.</p>
+        <a class="key" href="mailto:hello@vibecut.me?subject=VibeCut%20Studio">Ask about it</a>
       </div>
     </div>
   </section>
 </main>
 
-<footer class="site-foot">
-  <div class="wrap">
-    <p>VibeCut is a company of CommandAGI. <a href="mailto:hello@vibecut.me">hello@vibecut.me</a></p>
-    <p><a href="#cut">The editor</a> · <a href="#how">How it works</a> · <a href="#pricing">Pricing</a></p>
-  </div>
+<footer class="roll">
+  <dl>
+    <div><dt>Cut engine</dt><dd>lib/edl.mjs, in this page</dd></div>
+    <div><dt>Footage</dt><dd>generated with fal (Kling 2.5)</dd></div>
+    <div><dt>Type</dt><dd>Big Shoulders, Hanken Grotesk, DM Mono</dd></div>
+    <div><dt>A company of</dt><dd>CommandAGI</dd></div>
+    <div><dt>Credits</dt><dd><a href="mailto:hello@vibecut.me">hello@vibecut.me</a></dd></div>
+  </dl>
+  <p class="disclose">Sample footage generated for this page. No real studio, person or event.</p>
+  <p class="fin">Fin.</p>
 </footer>
 
+<nav class="reel" aria-label="Site">
+  <ol class="reel__track">
+    <li><a href="#cut"><span class="reel__no" aria-hidden="true">R1</span> <span class="reel__label">The cut</span></a></li>
+    <li><a href="#how"><span class="reel__no" aria-hidden="true">R2</span> <span class="reel__label">How it decides</span></a></li>
+    <li><a href="#what"><span class="reel__no" aria-hidden="true">R3</span> <span class="reel__label">What you keep</span></a></li>
+    <li><a href="#pricing"><span class="reel__no" aria-hidden="true">R4</span> <span class="reel__label">Credits</span></a></li>
+  </ol>
+  <span class="reel__head" aria-hidden="true"></span>
+  <span class="reel__tc" id="scroll-tc" aria-hidden="true">00:00:00:00</span>
+</nav>
+
 <script type="module" src="app/lang.mjs"></script>
+<script type="module" src="app/reels.mjs"></script>
 <script type="module" src="app/app.mjs"></script>
 </body>
 </html>

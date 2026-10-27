@@ -1,7 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="VibeCut">
-  <rect width="64" height="64" rx="14" fill="#101319"/>
-  <path d="M16 16h12v32H16z" fill="#f0b64b"/>
-  <path d="M34 16 52 32 34 48z" fill="#e9edf3"/>
-  <path d="M28 12 40 52h5L33 12z" fill="#0b0d12"/>
-  <path d="M30 12 42 52h2L32 12z" fill="#f0b64b" opacity="0.9"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 2000">
+<rect width="2000" height="2000" fill="#101010"/>
+<path fill="#f3f0e8" transform="translate(304 1620) scale(0.7750 -0.7750)" d="M252 0 20 1600H330L448 798L466 264H522L540 798L658 1600H968L736 0Z"/>
+<path fill="#f0442c" d="M1600 240 h180 l-200 1520 h-180 z"/>
 </svg>

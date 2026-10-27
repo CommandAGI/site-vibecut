@@ -158,3 +158,26 @@ test('the sample footage is what the cut engine says it is', () => {
     for (const id of ids) assert.ok(CLIP_BY_ID.get(id));
     assert.deepEqual(CLIPS.map(c => c.shot), ['wide', 'wide', 'wide', 'close', 'close', 'close', 'b-roll', 'logo']);
 });
+
+test('a description reframes the cut, and the file keeps the frame', () => {
+    // The screening room's own frame is scope; a word for another frame wins, in any of the three languages.
+    assert.equal(cut('10 seconds, wide shots').frame, 'scope');
+    for (const [text, frame] of [
+        ['15 seconds, vertical, the robot arm', 'vertical'],
+        ['un corte cuadrado de 10 segundos', 'square'],
+        ['12 秒，竖屏，城市', 'vertical'],
+        ['20 seconds for youtube, 16:9', '16:9'],
+        ['scope first, then vertical: 9 seconds', 'vertical'],
+        ['8 seconds, not vertical', 'scope'],
+    ]) {
+        const plan = cut(text);
+        assert.equal(plan.frame, frame, text);
+        assert.equal(toFile(plan).frame, frame, text);
+    }
+    assert.equal(cut('square, 5 seconds').aspect, 1);
+    assert.ok(cut('vertical, 5 seconds').reasons.some(r => r.code === 'frame' && r.params.frame === 'vertical'));
+    // A frame changes the shape, never the length or the shots.
+    const a = cut('20 seconds, fast, no coffee');
+    const b = cut('20 seconds, fast, no coffee, vertical');
+    assert.deepEqual(b.shots, a.shots);
+});

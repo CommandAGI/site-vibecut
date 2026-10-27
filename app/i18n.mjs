@@ -77,6 +77,15 @@ const STRINGS = {
     'reason.pace-fast': { en: 'Fast pace: each shot holds about {s} seconds.', es: 'Ritmo rápido: cada plano dura unos {s} segundos.', 'zh-Hans': '快节奏：每个镜头约 {s} 秒。' },
     'reason.pace-slow': { en: 'Calm pace: each shot holds about {s} seconds.', es: 'Ritmo tranquilo: cada plano dura unos {s} segundos.', 'zh-Hans': '平缓节奏：每个镜头约 {s} 秒。' },
     'reason.slow-motion': { en: 'Slow motion: each shot plays at half speed.', es: 'Cámara lenta: cada plano va a media velocidad.', 'zh-Hans': '慢动作：每个镜头以半速播放。' },
+    'edl.clip': { en: 'Clip', es: 'Plano', 'zh-Hans': '镜头' },
+    'edl.src': { en: 'Src in', es: 'Fuente', 'zh-Hans': '素材入点' },
+    'edl.in': { en: 'Rec in', es: 'Entrada', 'zh-Hans': '入点' },
+    'edl.out': { en: 'Rec out', es: 'Salida', 'zh-Hans': '出点' },
+    'reason.frame': { en: 'Reframed to {frame}, as you asked.', es: 'Reencuadrado a {frame}, como pediste.', 'zh-Hans': '按你的要求，改为 {frame} 画幅。' },
+    'frame.scope': { en: 'scope (2.39:1)', es: 'panorámico (2.39:1)', 'zh-Hans': '宽银幕（2.39:1）' },
+    'frame.16:9': { en: '16:9', es: '16:9', 'zh-Hans': '16:9' },
+    'frame.square': { en: 'square (1:1)', es: 'cuadrado (1:1)', 'zh-Hans': '方形（1:1）' },
+    'frame.vertical': { en: 'vertical (9:16)', es: 'vertical (9:16)', 'zh-Hans': '竖屏（9:16）' },
     'shot.wide': { en: 'wide', es: 'general', 'zh-Hans': '全景' },
     'shot.close': { en: 'close', es: 'primer plano', 'zh-Hans': '特写' },
     'shot.b-roll': { en: 'b-roll', es: 'b-roll', 'zh-Hans': '空镜' },
@@ -141,6 +150,7 @@ export function reasonSentence(locale, reason) {
         case 'pace-fast': return t(locale, 'reason.pace-fast', { s: p.seconds });
         case 'pace-slow': return t(locale, 'reason.pace-slow', { s: p.seconds });
         case 'slow-motion': return t(locale, 'reason.slow-motion');
+        case 'frame': return t(locale, 'reason.frame', { frame: t(locale, `frame.${p.frame}`) });
         default: return '';
     }
 }
